@@ -1,31 +1,37 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.Mathematics;
 using UnityEngine;
 
-public class Player : MonoBehaviour
+public class Player : Character
 {
     [SerializeField] private Rigidbody2D rb;
-    [SerializeField] private Animator anim;
     [SerializeField] private LayerMask groundLayer;
     [SerializeField] private float jumpForce = 350;
     [SerializeField] private float speed = 250;
+    [SerializeField] private Kunai kunaiPrefab;
+    [SerializeField] private Transform throwPoint;
+    [SerializeField] private GameObject attackArea;
+
+
 
     private bool isGrounded = true;
     private bool isJumping = false;
     private bool isAttack = false;
+    private bool isDead = false;
     private float horizontal;
-    private string currentAnim;
-
-    // Start is called before the first frame update
-    void Start()
-    {
-
-    }
+    private int coin = 0;
+    private Vector3 savePoint;
 
     // Update is called once per frame
-    void FixedUpdate()
+    void Update()
+
     {
+        if (isDead)
+        {
+            return;
+        }
         isGrounded = CheckGrounded();
 
         //Di chuyen
@@ -85,10 +91,32 @@ public class Player : MonoBehaviour
             rb.velocity = Vector2.zero;
         }
     }
+
+    public override void OnInit()
+    {
+        base.OnInit();
+        isDead = false;
+        isAttack = false;
+        transform.position = savePoint;
+        ChageAnim("idle");
+        DeActiveAttack();
+
+        SavePoint();
+
+    }
+    public override void OnDespawn()
+    {
+        base.OnDespawn();
+        OnInit();
+    }
+    protected override void OnDeath()
+    {
+        base.OnDeath();
+    }
     private bool CheckGrounded()
     {
-        Debug.DrawLine(transform.position, transform.position + Vector3.down * 0.7f, Color.red);
-        RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.down, 0.7f, groundLayer);
+        Debug.DrawLine(transform.position, transform.position + Vector3.down * 1.1f, Color.red);
+        RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.down, 1.1f, groundLayer);
         if (hit.collider != null)
         {
             return true;
@@ -103,13 +131,20 @@ public class Player : MonoBehaviour
     {
         isAttack = true;
         ChageAnim("attack");
-        Invoke(nameof(ResetIdle), 0.5f);
+        Invoke(nameof(ResetIdle), 0.65f);
+        ActiveAttack();
+        Invoke(nameof(DeActiveAttack), 0.65f);
+
+
     }
     private void Throw()
     {
         isAttack = true;
         ChageAnim("throw");
-        Invoke(nameof(ResetIdle), 0.5f);
+        Invoke(nameof(ResetIdle), 0.65f);
+
+        Instantiate(kunaiPrefab, throwPoint.position, throwPoint.rotation);
+
     }
     private void Jump()
     {
@@ -123,17 +158,35 @@ public class Player : MonoBehaviour
         isAttack = false;
 
     }
-
-    // doi Anim 
-    private void ChageAnim(string animName)
+    private void ActiveAttack()
     {
-        if (currentAnim != animName)
+        attackArea.SetActive(true);
+
+    }
+    private void DeActiveAttack()
+    {
+        attackArea.SetActive(false);
+
+    }
+
+    public void OnTriggerEnter2D(Collider2D collision)
+
+    {
+        if (collision.tag == "Coin")
         {
-            anim.ResetTrigger(animName);
-            currentAnim = animName;
-            anim.SetTrigger(currentAnim);
+            coin++;
+            Destroy(collision.gameObject);
         }
+        if (collision.tag == "DeadZone")
+        {
+            isDead = true;
+            ChageAnim("dead");
+            Invoke(nameof(OnInit), 1f);
+        }
+    }
 
-
+    internal void SavePoint()
+    {
+        savePoint = transform.position;
     }
 }
