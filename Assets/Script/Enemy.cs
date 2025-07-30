@@ -36,6 +36,7 @@ public class Enemy : Character
     public override void OnDespawn()
     {
         base.OnDespawn();
+        Destroy(heathBar.gameObject);
         Destroy(gameObject);
     }
     protected override void OnDeath()
@@ -68,11 +69,12 @@ public class Enemy : Character
     public void Attack()
     {
         ChageAnim("attack");
-        ActiveAttack();
-        Invoke(nameof(DeActiveAttack), 0.65f);
+        Invoke(nameof(ActiveAttack), 0.5f);
+        DeActiveAttack();
     }
     public bool IsTargetInRange()
     {
+
         if (target != null && Vector2.Distance(target.transform.position, transform.position) <= attackRange)
         {
             return true;
@@ -88,6 +90,7 @@ public class Enemy : Character
         {
             ChageDirection(!isRight);
         }
+
     }
 
     public void ChageDirection(bool isRight)
@@ -110,19 +113,34 @@ public class Enemy : Character
     internal void SetTarget(Character character)
 
     {
-        this.target = character;
-        if (IsTargetInRange())
+        if (isDead)
         {
-            ChageState(new AttackState());
-        }
-        else
-        if (Target != null)
-        {
-            ChageState(new PatrolState());
+            return;
+
         }
         else
         {
-            ChageState(new IdleState());
+            this.target = character;
+            Debug.Log(IsTargetInRange());
+            if (IsTargetInRange())
+            {
+                Debug.Log("attack");
+
+                ChageState(new AttackState());
+            }
+            else
+            if (Target != null)
+            {
+                ChageState(new PatrolState());
+                Debug.Log("patrol");
+            }
+            else
+            {
+                ChageState(new IdleState());
+                Debug.Log("idle");
+            }
+
         }
+        DeActiveAttack();
     }
 }

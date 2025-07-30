@@ -10,6 +10,7 @@ public class AttackState : IState
     {
         if (enemy.Target != null)
         {
+
             // doi huong enemy toi huong cua player
             enemy.ChageDirection(enemy.Target.transform.position.x > enemy.transform.position.x);
 

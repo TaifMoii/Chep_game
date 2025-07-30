@@ -19,12 +19,17 @@ public class Player : Character
     private bool isGrounded = true;
     private bool isJumping = false;
     private bool isAttack = false;
-    private bool isDead = false;
     private float horizontal;
     private int coin = 0;
     private Vector3 savePoint;
 
-    // Update is called once per frame
+    void Awake()
+    {
+        SavePoint();
+        coin = PlayerPrefs.GetInt("coin", 0);
+    }
+
+
     void Update()
 
     {
@@ -82,7 +87,7 @@ public class Player : Character
         /* vertical= Input.GetAxisRaw("Vertical"); */
         if (Mathf.Abs(horizontal) > 0.1f)
         {
-            rb.velocity = new Vector2(horizontal * Time.fixedDeltaTime * speed, rb.velocity.y);
+            rb.velocity = new Vector2(horizontal * speed, rb.velocity.y);
             transform.rotation = Quaternion.Euler(new Vector3(0, horizontal > 0 ? 0 : 180, 0));
         }
         else if (isGrounded)
@@ -94,14 +99,12 @@ public class Player : Character
 
     public override void OnInit()
     {
+        DeActiveAttack();
         base.OnInit();
-        isDead = false;
         isAttack = false;
         transform.position = savePoint;
         ChageAnim("idle");
-        DeActiveAttack();
-
-        SavePoint();
+        UIManager.instance.SetCoin(coin);
 
     }
     public override void OnDespawn()
@@ -127,17 +130,17 @@ public class Player : Character
         }
 
     }
-    private void Attack()
+    public void Attack()
     {
         isAttack = true;
         ChageAnim("attack");
         Invoke(nameof(ResetIdle), 0.65f);
         ActiveAttack();
-        Invoke(nameof(DeActiveAttack), 0.65f);
+        Invoke(nameof(DeActiveAttack), 0.5f);
 
 
     }
-    private void Throw()
+    public void Throw()
     {
         isAttack = true;
         ChageAnim("throw");
@@ -146,7 +149,7 @@ public class Player : Character
         Instantiate(kunaiPrefab, throwPoint.position, throwPoint.rotation);
 
     }
-    private void Jump()
+    public void Jump()
     {
         isJumping = true;
         ChageAnim("jump");
@@ -175,11 +178,13 @@ public class Player : Character
         if (collision.tag == "Coin")
         {
             coin++;
+            PlayerPrefs.SetInt("coin", coin);
+            UIManager.instance.SetCoin(coin);
+
             Destroy(collision.gameObject);
         }
         if (collision.tag == "DeadZone")
         {
-            isDead = true;
             ChageAnim("dead");
             Invoke(nameof(OnInit), 1f);
         }
@@ -189,4 +194,10 @@ public class Player : Character
     {
         savePoint = transform.position;
     }
+    public void SetMove(float horizontal)
+    {
+        this.horizontal = horizontal;
+    }
+
+
 }
