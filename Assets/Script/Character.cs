@@ -10,6 +10,7 @@ public class Character : MonoBehaviour
     [SerializeField] protected HeathBar heathBar;
     [SerializeField] protected CombatText combatTextPrefab;
     private float hp;
+    private float originHP = 100;
     public bool isDead => hp <= 0;
     private string currentAnim;
 
@@ -19,7 +20,7 @@ public class Character : MonoBehaviour
     }
     public virtual void OnInit()
     {
-        hp = 100;
+        hp = originHP;
         heathBar.OnInit(100, transform);
     }
     public virtual void OnDespawn()

@@ -3,13 +3,14 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.Mathematics;
 using UnityEngine;
+using UnityEngine.Tilemaps;
 
 public class Player : Character
 {
     [SerializeField] private Rigidbody2D rb;
     [SerializeField] private LayerMask groundLayer;
-    [SerializeField] private float jumpForce = 350;
-    [SerializeField] private float speed = 250;
+    [SerializeField] private float jumpForce = 550;
+    [SerializeField] private float speed = 5;
     [SerializeField] private Kunai kunaiPrefab;
     [SerializeField] private Transform throwPoint;
     [SerializeField] private GameObject attackArea;
@@ -65,6 +66,10 @@ public class Player : Character
                 ChageAnim("run");
             }
             //Attack
+            if ((Input.GetKeyDown(KeyCode.LeftShift) && isGrounded))
+            {
+                Slide();
+            }
             if ((Input.GetKeyDown(KeyCode.J)) && isGrounded)
             {
                 Attack();
@@ -130,6 +135,16 @@ public class Player : Character
         }
 
     }
+    public void Slide()
+    {
+        speed = 9f;
+        ChageAnim("slide");
+        Invoke(nameof(WaitSlide), 1f);
+    }
+    void WaitSlide()
+    {
+        speed = 5f;
+    }
     public void Attack()
     {
         isAttack = true;
@@ -180,13 +195,18 @@ public class Player : Character
             coin++;
             PlayerPrefs.SetInt("coin", coin);
             UIManager.instance.SetCoin(coin);
-
             Destroy(collision.gameObject);
         }
         if (collision.tag == "DeadZone")
         {
             ChageAnim("dead");
             Invoke(nameof(OnInit), 1f);
+        }
+        if (collision.tag == "Heal")
+        {
+            base.OnInit();
+            Destroy(collision.gameObject);
+
         }
     }
 

@@ -69,8 +69,8 @@ public class Enemy : Character
     public void Attack()
     {
         ChageAnim("attack");
-        Invoke(nameof(ActiveAttack), 0.5f);
-        DeActiveAttack();
+        Invoke(nameof(ActiveAttack), 0.4f);
+        Invoke(nameof(DeActiveAttack), 0.5f);
     }
     public bool IsTargetInRange()
     {
@@ -86,17 +86,22 @@ public class Enemy : Character
     }
     void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.tag == "EnemyWall")
+        if (IsTargetInRange())
         {
-            ChageDirection(!isRight);
-        }
 
+        }
+        else
+        {
+            if (collision.tag == "EnemyWall")
+            {
+                ChageDirection(!isRight);
+            }
+        }
     }
 
     public void ChageDirection(bool isRight)
     {
         this.isRight = isRight;
-
         transform.rotation = isRight ? Quaternion.Euler(Vector3.zero) : Quaternion.Euler(Vector3.up * 180);
     }
 
@@ -111,36 +116,25 @@ public class Enemy : Character
 
     }
     internal void SetTarget(Character character)
-
     {
-        if (isDead)
-        {
-            return;
 
+
+        this.target = character;
+        if (IsTargetInRange())
+        {
+            ChageState(new AttackState());
+        }
+        else if (Target != null)
+        {
+            ChageState(new PatrolState());
         }
         else
         {
-            this.target = character;
-            Debug.Log(IsTargetInRange());
-            if (IsTargetInRange())
-            {
-                Debug.Log("attack");
-
-                ChageState(new AttackState());
-            }
-            else
-            if (Target != null)
-            {
-                ChageState(new PatrolState());
-                Debug.Log("patrol");
-            }
-            else
-            {
-                ChageState(new IdleState());
-                Debug.Log("idle");
-            }
-
+            ChageState(new IdleState());
         }
+
+
         DeActiveAttack();
+
     }
 }

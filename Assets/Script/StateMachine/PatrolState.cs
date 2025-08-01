@@ -21,6 +21,7 @@ public class PatrolState : IState
 
             // doi huong enemy toi huong cua player
             enemy.ChageDirection(enemy.Target.transform.position.x > enemy.transform.position.x);
+
             if (enemy.IsTargetInRange())
             {
                 enemy.ChageState(new AttackState());
